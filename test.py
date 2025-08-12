@@ -4,7 +4,7 @@ from escpos.printer import Usb
 
 # vendor id, product id, lsusb -vvv -d 1504:0101 | grep bEndpointAddress
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
-
+p.charcode("CP1252")
 
 def get_joke():
     jokes = [
@@ -23,5 +23,6 @@ def get_joke():
     return choice(jokes)
 
 
-p.text(f"Hei\nHer er en vits:\n\n{get_joke()}")
+# p.text(f"{get_joke()}")
+p.text("Her er en Ææ, en Øø, og en Åå. ^*̈́''¨`+\\`=)(/&%¤#\"!.,-)")
 p.cut()
