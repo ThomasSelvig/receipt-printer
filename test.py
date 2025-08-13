@@ -23,6 +23,6 @@ def get_joke():
     return choice(jokes)
 
 
-# p.text(f"{get_joke()}")
-p.text("Her er en Ææ, en Øø, og en Åå. ^*̈́''¨`+\\`=)(/&%¤#\"!.,-)")
+p.text(f"{get_joke()}")
+# p.text("Her er en Ææ, en Øø, og en Åå. ^*̈́''¨`+\\`=)(/&%¤#\"!.,-)")
 p.cut()
