@@ -32,7 +32,14 @@ async def print_bilde(ctx, bilde: discord.Attachment):
         if response.status_code == 200:
                 try:
                     image = Image.open(BytesIO(response.content))
-                    # Now 'image' is a PIL Image object
+                    
+                    # Resize image if width exceeds 512px
+                    max_width = 512
+                    if image.width > max_width:
+                        aspect_ratio = image.height / image.width
+                        new_height = int(max_width * aspect_ratio)
+                        image = image.resize((max_width, new_height))
+                    
                     p.image(image)
                     p.cut()
                     await ctx.respond("Printet bildet.")
