@@ -25,8 +25,11 @@ RUN apt-get update && apt-get install -y udev && rm -rf /var/lib/apt/lists/*
 # Create dialout group with GID 20 (standard on most systems)
 RUN groupadd -g 20 dialout || true
 
+# Create primary group for user
+RUN groupadd -g 1000 appuser
+
 # Create user with UID 1000 and add to dialout group
-RUN useradd -u 1000 -g 1000 -G dialout appuser || usermod -a -G dialout appuser
+RUN useradd -u 1000 -g 1000 -G dialout -m appuser
 
 RUN chown -R 1000:1000 /app
 USER 1000:1000
