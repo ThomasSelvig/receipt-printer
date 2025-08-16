@@ -24,7 +24,7 @@ async def print_tekst(ctx, melding: str):
         p.cut()
         print(f"melding: {melding}")
         await ctx.respond("Printet meldingen.")
-    except:
+    except IOError:
         await ctx.respond("Feilet printing.")
 
 @bot.slash_command(name="print-bilde", guild_ids=guilds)
