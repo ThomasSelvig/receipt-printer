@@ -19,10 +19,13 @@ p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
 
 @bot.slash_command(name="print-tekst", guild_ids=guilds)
 async def print_tekst(ctx, melding: str):
-    print(f"melding: {melding}")
-    p.text(melding)
-    p.cut()
-    await ctx.respond("Printet meldingen.")
+    try:
+        p.text(melding)
+        p.cut()
+        print(f"melding: {melding}")
+        await ctx.respond("Printet meldingen.")
+    except:
+        await ctx.respond("Feilet printing.")
 
 @bot.slash_command(name="print-bilde", guild_ids=guilds)
 async def print_bilde(ctx, bilde: discord.Attachment):
