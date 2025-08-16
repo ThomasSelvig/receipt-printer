@@ -19,8 +19,8 @@ COPY . /app
 # RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
 # USER appuser
 
-# Install udev and create dialout group with same GID as host
-RUN apt-get update && apt-get install -y udev && rm -rf /var/lib/apt/lists/*
+# Install udev, libusb and create dialout group with same GID as host
+RUN apt-get update && apt-get install -y udev libusb-1.0-0 && rm -rf /var/lib/apt/lists/*
 
 # Create dialout group with GID 20 (standard on most systems)
 RUN groupadd -g 20 dialout || true
