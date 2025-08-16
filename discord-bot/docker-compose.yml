@@ -5,9 +5,10 @@ services:
     build: .
     privileged: true
     devices:
-      - /dev/bus/usb:/dev/bus/usb
+      - /dev/bus/usb/001/003:/dev/bus/usb/001/003
     volumes:
-      - /dev/bus/usb:/dev/bus/usb
+      - /dev:/dev
+      - /run/udev:/run/udev:ro
     env_file:
       - .env
     restart: unless-stopped
