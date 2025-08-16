@@ -19,7 +19,15 @@ COPY . /app
 # RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /app
 # USER appuser
 
-# use the rpi user: it is part of the dialout group, which has been given udev permission to use the printer device
+# Install udev and create dialout group with same GID as host
+RUN apt-get update && apt-get install -y udev && rm -rf /var/lib/apt/lists/*
+
+# Create dialout group with GID 20 (standard on most systems)
+RUN groupadd -g 20 dialout || true
+
+# Create user with UID 1000 and add to dialout group
+RUN useradd -u 1000 -g 1000 -G dialout appuser || usermod -a -G dialout appuser
+
 RUN chown -R 1000:1000 /app
 USER 1000:1000
 

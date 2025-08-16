@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  discord-bot:
+    build: .
+    privileged: true
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+    env_file:
+      - .env
+    restart: unless-stopped
