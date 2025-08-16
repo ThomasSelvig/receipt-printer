@@ -2,5 +2,5 @@
 py-cord
 requests
 python-escpos[usb]
-dotenv
+python-dotenv
 Pillow
