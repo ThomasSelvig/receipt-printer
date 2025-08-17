@@ -34,5 +34,8 @@ RUN useradd -u 1000 -g 1000 -G dialout -m appuser
 RUN chown -R 1000:1000 /app
 USER 1000:1000
 
+# Expose FastAPI port
+EXPOSE 8000
+
 # During debugging, this entry point will be overridden. For more information, please refer to https://aka.ms/vscode-docker-python-debug
 CMD ["python", "bot.py"]

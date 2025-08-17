@@ -4,3 +4,6 @@ requests
 python-escpos[usb]
 python-dotenv
 Pillow
+fastapi
+uvicorn[standard]
+python-multipart
