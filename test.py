@@ -2,6 +2,8 @@ from random import choice
 
 from escpos.printer import Usb
 
+norwegian_supported_codes = ["CP1252", "CP850", "CP865"]
+
 # vendor id, product id, lsusb -vvv -d 1504:0101 | grep bEndpointAddress
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
 p.charcode("CP1252")
