@@ -71,11 +71,13 @@ async def print_bilde(ctx, bilde: discord.Attachment):
 @app.post("/print/text")
 async def print_text_api(text: str = Form(...)):
     try:
-        print("printer tekst:", text)
-        p.text(text)
+        # Fix encoding issue for Norwegian characters
+        decoded_text = text.encode('latin1').decode('utf-8')
+        print("printer tekst:", decoded_text)
+        p.text(decoded_text)
         p.cut()
         return {"status": "success", "message": "Text printed successfully"}
-    except IOError as e:
+    except (IOError, UnicodeDecodeError) as e:
         return {"status": "error", "message": f"Printing failed: {str(e)}"}
 
 
