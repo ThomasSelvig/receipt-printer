@@ -22,7 +22,7 @@ app = FastAPI()
 # vendor id, product id, lsusb -vvv -d 1504:0101 | grep bEndpointAddress
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
 sleep(1)
-p.charcode("CP1252")
+p.charcode("CP865")
 
 
 @bot.slash_command(name="print-tekst", guild_ids=guilds)
