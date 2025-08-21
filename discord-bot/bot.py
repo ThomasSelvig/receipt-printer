@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from escpos.printer import Usb
 import requests
 from fastapi import FastAPI, File, UploadFile, Form
+from time import sleep
 import uvicorn
 
 load_dotenv()
@@ -20,7 +21,8 @@ app = FastAPI()
 
 # vendor id, product id, lsusb -vvv -d 1504:0101 | grep bEndpointAddress
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
-p.charcode("CP865")
+sleep(1)
+p.charcode("CP1252")
 
 
 @bot.slash_command(name="print-tekst", guild_ids=guilds)
@@ -69,6 +71,7 @@ async def print_bilde(ctx, bilde: discord.Attachment):
 @app.post("/print/text")
 async def print_text_api(text: str = Form(...)):
     try:
+        print("printer tekst:", text)
         p.text(text)
         p.cut()
         return {"status": "success", "message": "Text printed successfully"}
