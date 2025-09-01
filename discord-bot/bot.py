@@ -12,6 +12,7 @@ import requests
 from fastapi import FastAPI, File, UploadFile, Form
 from time import sleep
 import uvicorn
+from image_backend import ImageBackend
 
 load_dotenv()
 
@@ -22,7 +23,10 @@ app = FastAPI()
 # vendor id, product id, lsusb -vvv -d 1504:0101 | grep bEndpointAddress
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
 sleep(1)
-p.charcode("CP865")
+p.charcode("CP850")
+
+# Initialize image backend for advanced text rendering
+image_backend = ImageBackend(max_width=512)
 
 
 @bot.slash_command(name="print-tekst", guild_ids=guilds)
@@ -69,12 +73,15 @@ async def print_bilde(ctx, bilde: discord.Attachment):
 
 
 @app.post("/print/text")
-async def print_text_api(text: str = Form(...)):
+async def print_text_api(text: str = Form(...), markdown: bool = Form(True)):
     try:
         # Fix encoding issue for Norwegian characters
         decoded_text = text.encode('latin1').decode('utf-8')
         print("printer tekst:", decoded_text)
-        p.text(decoded_text)
+        
+        # Use ImageBackend to render text as image
+        text_image = image_backend.text_to_image(decoded_text, is_markdown=markdown)
+        p.image(text_image)
         p.cut()
         return {"status": "success", "message": "Text printed successfully"}
     except (IOError, UnicodeDecodeError) as e:
@@ -130,6 +137,22 @@ async def print_from_url_api(url: str = Form(...)):
         return {"status": "success", "message": "Image from URL printed successfully"}
     except Exception as e:
         return {"status": "error", "message": f"Failed to print image from URL: {str(e)}"}
+
+
+@app.post("/print/qr")
+async def print_qr_api(data: str = Form(...)):
+    try:
+        # Fix encoding issue for Norwegian characters
+        decoded_data = data.encode('latin1').decode('utf-8')
+        print("printing QR for:", decoded_data)
+        
+        # Generate QR code image
+        qr_image = image_backend.generate_qr_code(decoded_data)
+        p.image(qr_image)
+        p.cut()
+        return {"status": "success", "message": "QR code printed successfully"}
+    except (IOError, UnicodeDecodeError) as e:
+        return {"status": "error", "message": f"QR printing failed: {str(e)}"}
 
 
 def run_fastapi():
