@@ -1,23 +1,31 @@
-from io import BytesIO
 import re
 import textwrap
 from typing import Optional, Tuple
 import qrcode
-import markdown
+try:
+    import markdown
+except ImportError:
+    markdown = None
 from PIL import Image, ImageDraw, ImageFont
 
 
 class ImageBackend:
-    def __init__(self, max_width: int = 512, font_size: int = 16, line_spacing: int = 4):
+    def __init__(self, max_width: int = 512, font_size: int = 24, line_spacing: int = 6):
         self.max_width = max_width
         self.font_size = font_size
         self.line_spacing = line_spacing
         self.padding = 20
         
         try:
-            self.font = ImageFont.load_default()
-        except Exception:
-            self.font = ImageFont.load_default()
+            # Try to load a truetype font with the specified size
+            self.font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", self.font_size)
+        except (IOError, OSError):
+            try:
+                # Fallback to default font with size
+                self.font = ImageFont.load_default()
+            except Exception:
+                # Last resort
+                self.font = ImageFont.load_default()
     
     def _estimate_text_size(self, text: str) -> Tuple[int, int]:
         lines = text.split('\n')
@@ -33,7 +41,7 @@ class ImageBackend:
         
         return max_line_width, total_height
     
-    def _wrap_text(self, text: str, max_chars_per_line: int = 60) -> str:
+    def _wrap_text(self, text: str, max_chars_per_line: int = 35) -> str:
         lines = text.split('\n')
         wrapped_lines = []
         
@@ -50,6 +58,10 @@ class ImageBackend:
         return '\n'.join(wrapped_lines)
     
     def _render_markdown_to_text(self, markdown_text: str) -> str:
+        if markdown is None:
+            # If markdown is not available, return text as-is
+            return markdown_text
+            
         html = markdown.markdown(markdown_text)
         
         # Simple HTML to text conversion for receipt printing
@@ -164,6 +176,8 @@ class ImageBackend:
         qr.make(fit=True)
         
         qr_img = qr.make_image(fill_color="black", back_color="white")
+        # Convert qrcode wrapper to standard PIL Image
+        qr_img = qr_img.convert('RGB')
         
         # Ensure the QR code doesn't exceed max_width
         if qr_img.width > self.max_width:
