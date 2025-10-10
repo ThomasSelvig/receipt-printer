@@ -16,20 +16,31 @@ class ImageBackend:
         self.line_spacing = line_spacing
         self.padding = 20
         self.bold_font = None
-        self.header_font = None
+        self.h1_font = None
+        self.h2_font = None
+        self.h3_font = None
         
         font_loaded = False
+        # Use fonts with better Unicode support (sans instead of mono for emojis)
         font_paths = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Better Unicode support
             "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf", 
+            "/usr/share/fonts/truetype/ubuntu/Ubuntu-Regular.ttf",  # Better Unicode support
             "/usr/share/fonts/truetype/ubuntu/UbuntuMono-Regular.ttf",
+            "/System/Library/Fonts/Arial.ttf",  # macOS - better Unicode
             "/System/Library/Fonts/Monaco.ttf",  # macOS
         ]
         
         bold_font_paths = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # Better Unicode support
             "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
             "/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf",
+            "/usr/share/fonts/truetype/ubuntu/Ubuntu-Bold.ttf",  # Better Unicode support
             "/usr/share/fonts/truetype/ubuntu/UbuntuMono-Bold.ttf",
+            "/System/Library/Fonts/Arial Bold.ttf",  # macOS
             "/System/Library/Fonts/Monaco.ttf",  # macOS
         ]
         
@@ -50,10 +61,27 @@ class ImageBackend:
             except (IOError, OSError):
                 continue
         
-        # Load header font (larger size)
+        # Load header fonts (different sizes)
+        # H1 - largest
         for font_path in font_paths:
             try:
-                self.header_font = ImageFont.truetype(font_path, int(self.font_size * 1.5))
+                self.h1_font = ImageFont.truetype(font_path, int(self.font_size * 1.8))
+                break
+            except (IOError, OSError):
+                continue
+        
+        # H2 - medium
+        for font_path in font_paths:
+            try:
+                self.h2_font = ImageFont.truetype(font_path, int(self.font_size * 1.5))
+                break
+            except (IOError, OSError):
+                continue
+        
+        # H3 - slightly larger than normal
+        for font_path in font_paths:
+            try:
+                self.h3_font = ImageFont.truetype(font_path, int(self.font_size * 1.2))
                 break
             except (IOError, OSError):
                 continue
@@ -65,11 +93,63 @@ class ImageBackend:
             except:
                 self.font = ImageFont.load_default()
         
-        # Set fallbacks for bold and header if they failed to load
+        # Set fallbacks if fonts failed to load
         if self.bold_font is None:
             self.bold_font = self.font
-        if self.header_font is None:
-            self.header_font = self.font
+        if self.h1_font is None:
+            self.h1_font = self.font
+        if self.h2_font is None:
+            self.h2_font = self.font
+        if self.h3_font is None:
+            self.h3_font = self.font
+            
+        # Try to load an emoji/symbol font as fallback
+        self.emoji_font = None
+        emoji_font_paths = [
+            "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
+            "/usr/share/fonts/truetype/noto/NotoEmoji-Regular.ttf", 
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  # Has some symbols
+            "/System/Library/Fonts/Apple Color Emoji.ttc",  # macOS
+        ]
+        
+        for font_path in emoji_font_paths:
+            try:
+                self.emoji_font = ImageFont.truetype(font_path, self.font_size)
+                break
+            except (IOError, OSError):
+                continue
+        
+        if self.emoji_font is None:
+            self.emoji_font = self.font
+    
+    def _draw_text_with_emoji_support(self, draw, position, text, font, fill='black'):
+        """Draw text with emoji fallback support"""
+        x, y = position
+        
+        # Try to render with main font first
+        try:
+            draw.text((x, y), text, fill=fill, font=font)
+        except UnicodeEncodeError:
+            # If main font fails, try character by character with emoji fallback
+            current_x = x
+            for char in text:
+                try:
+                    # Try main font first
+                    draw.text((current_x, y), char, fill=fill, font=font)
+                    bbox = font.getbbox(char)
+                    char_width = bbox[2] - bbox[0]
+                except (UnicodeEncodeError, OSError):
+                    try:
+                        # Fallback to emoji font
+                        draw.text((current_x, y), char, fill=fill, font=self.emoji_font)
+                        bbox = self.emoji_font.getbbox(char)
+                        char_width = bbox[2] - bbox[0]
+                    except (UnicodeEncodeError, OSError):
+                        # Last resort: skip character or use replacement
+                        char_width = font.getbbox('?')[2] - font.getbbox('?')[0]
+                        draw.text((current_x, y), '?', fill=fill, font=font)
+                
+                current_x += char_width
     
     def _estimate_text_size(self, text: str) -> Tuple[int, int]:
         lines = text.split('\n')
@@ -140,20 +220,78 @@ class ImageBackend:
         
         return text
     
+    def _parse_table(self, lines, start_idx):
+        table_lines = []
+        i = start_idx
+        
+        # Parse table lines
+        while i < len(lines) and ('|' in lines[i] or lines[i].strip() == ''):
+            if lines[i].strip():
+                table_lines.append(lines[i])
+            i += 1
+        
+        if len(table_lines) < 2:
+            return [], start_idx + 1
+        
+        # Parse header
+        header_cells = [cell.strip() for cell in table_lines[0].split('|')[1:-1]]
+        
+        # Skip separator line (assumed to be line 1)
+        data_rows = []
+        for row_line in table_lines[2:]:
+            if row_line.strip():
+                cells = [cell.strip() for cell in row_line.split('|')[1:-1]]
+                if cells:
+                    data_rows.append(cells)
+        
+        # Calculate column widths
+        all_rows = [header_cells] + data_rows
+        col_widths = []
+        for col_idx in range(len(header_cells)):
+            max_width = max(len(row[col_idx]) if col_idx < len(row) else 0 for row in all_rows)
+            col_widths.append(min(max_width + 2, 15))  # Max 15 chars per column
+        
+        # Format table
+        formatted_table = []
+        
+        # Header with underline
+        header_line = '|'.join(cell.ljust(width) for cell, width in zip(header_cells, col_widths))
+        formatted_table.append({'text': header_line, 'font': self.bold_font})
+        formatted_table.append({'text': '-' * len(header_line), 'font': self.font})
+        
+        # Data rows
+        for row in data_rows:
+            row_text = '|'.join(
+                (row[col_idx] if col_idx < len(row) else '').ljust(width)
+                for col_idx, width in enumerate(col_widths)
+            )
+            formatted_table.append({'text': row_text, 'font': self.font})
+        
+        return formatted_table, i
+    
     def _parse_markdown_to_formatted_lines(self, markdown_text: str):
         lines = markdown_text.split('\n')
         formatted_lines = []
         
-        for line in lines:
-            line = line.strip()
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Check for table (line contains |)
+            if '|' in line and i + 1 < len(lines) and '|' in lines[i + 1]:
+                table_lines, next_i = self._parse_table(lines, i)
+                formatted_lines.extend(table_lines)
+                formatted_lines.append({'text': '', 'font': self.font})  # Add spacing after table
+                i = next_i
+                continue
             
             # Handle headers
             if line.startswith('# '):
-                formatted_lines.append({'text': line[2:], 'font': self.header_font})
+                formatted_lines.append({'text': line[2:], 'font': self.h1_font})
             elif line.startswith('## '):
-                formatted_lines.append({'text': line[3:], 'font': self.header_font})
+                formatted_lines.append({'text': line[3:], 'font': self.h2_font})
             elif line.startswith('### '):
-                formatted_lines.append({'text': line[4:], 'font': self.header_font})
+                formatted_lines.append({'text': line[4:], 'font': self.h3_font})
             # Handle bold text (simple case - entire line)
             elif line.startswith('**') and line.endswith('**'):
                 formatted_lines.append({'text': line[2:-2], 'font': self.bold_font})
@@ -173,6 +311,8 @@ class ImageBackend:
             else:
                 # Regular text
                 formatted_lines.append({'text': line, 'font': self.font})
+            
+            i += 1
         
         return formatted_lines
     
@@ -217,8 +357,10 @@ class ImageBackend:
         y_offset = self.padding
         for line_info in wrapped_lines:
             if line_info['text'].strip():
-                draw.text((self.padding, y_offset), line_info['text'], 
-                         fill='black', font=line_info['font'])
+                self._draw_text_with_emoji_support(
+                    draw, (self.padding, y_offset), line_info['text'], 
+                    line_info['font'], fill='black'
+                )
             
             bbox = line_info['font'].getbbox('A')  # Use a reference character
             line_height = bbox[3] - bbox[1]
