@@ -7,8 +7,8 @@ from pilmoji.core import Pilmoji
 MAX_WIDTH = 512
 # font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 font_path = "OpenSans-VariableFont_wdth,wght.ttf"
-FONT = ImageFont.truetype(font_path, 24)
-FONT_LARGE = ImageFont.truetype(font_path, 64)
+FONT = ImageFont.truetype(font_path, 48)
+FONT_LARGE = ImageFont.truetype(font_path, 80)
 
 
 def wrap_long_string(long_text, max_width, font):
@@ -74,7 +74,7 @@ def print_task(task, task_type: TaskType):
     #             padding_x=50, align="right")
     draw_string(im, FONT_LARGE, emoji * 1, (0, 30), MAX_WIDTH,
                 padding_x=30, align="left")
-    draw_string(im, FONT_LARGE, task, (0, 104), MAX_WIDTH,
+    draw_string(im, FONT, task, (0, 104), MAX_WIDTH,
                 padding_x=30, align="center")
     return im
     # im.show()
@@ -82,7 +82,7 @@ def print_task(task, task_type: TaskType):
 
 def print_text(text):
     im = Image.new("L", (512, 256), "#ffffff")
-    draw_string(im, FONT_LARGE, text, (0, 104), MAX_WIDTH)
+    draw_string(im, FONT, text, (0, 104), MAX_WIDTH)
     return im
 
 
