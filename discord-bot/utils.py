@@ -69,8 +69,8 @@ class TaskType(str, Enum):
 
 def print_task(task, task_type: TaskType):
     emoji = {
-        TaskType.IDEA: "💡",
-        TaskType.URGENT: "🔔",
+        TaskType.IDEA: "‼️",
+        TaskType.URGENT: "🧨",
         TaskType.TODO: "📋",
         TaskType.ARCHIVE: "💾"
     }[task_type]
