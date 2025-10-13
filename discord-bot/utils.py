@@ -6,7 +6,7 @@ from pilmoji.core import Pilmoji
 
 MAX_WIDTH = 512
 # font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-font_path = "discord-bot/OpenSans-VariableFont_wdth,wght.ttf"
+font_path = "OpenSans-VariableFont_wdth,wght.ttf"
 FONT = ImageFont.truetype(font_path, 24)
 FONT_LARGE = ImageFont.truetype(font_path, 64)
 
