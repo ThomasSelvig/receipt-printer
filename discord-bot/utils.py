@@ -52,10 +52,10 @@ def draw_string(image, font, string, pos, max_width, padding_x=0, align: Literal
 
 
 class TaskType(str, Enum):
-    IDEA = 0
-    URGENT = 1
-    TODO = 2
-    ARCHIVE = 3
+    IDEA = "Idea"
+    URGENT = "Urgent"
+    TODO = "Todo"
+    ARCHIVE = "Archive"
 
 
 def print_task(task, task_type: TaskType):
