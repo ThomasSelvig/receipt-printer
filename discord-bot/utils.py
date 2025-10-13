@@ -2,13 +2,26 @@ from enum import Enum
 from typing import Literal
 from PIL import Image, ImageFont, ImageDraw
 from pilmoji.core import Pilmoji
+from string import ascii_letters
+from pathlib import Path
 
 
 MAX_WIDTH = 512
 # font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-font_path = "OpenSans-VariableFont_wdth,wght.ttf"
+# font_path = "OpenSans-VariableFont_wdth,wght.ttf"
+font_path = Path(__file__).parent / "OpenSans-VariableFont_wdth,wght.ttf"
 FONT = ImageFont.truetype(font_path, 48)
 FONT_LARGE = ImageFont.truetype(font_path, 80)
+
+
+def font_height(font):
+    l, t, r, b = font.getbbox(ascii_letters)
+    return b - t
+
+
+def font_str_width(font, string):
+    l, t, r, b = font.getbbox(string)
+    return r - l
 
 
 def wrap_long_string(long_text, max_width, font):
@@ -18,12 +31,8 @@ def wrap_long_string(long_text, max_width, font):
 
     for word in words:
         test_line = ' '.join(current_line + [word])
-        # Use font.getbbox() to get precise text size for Pillow 9+
-        # For older versions, font.getsize() might be used
-        l, t, r, b = font.getbbox(test_line)
-        text_width = r - l
 
-        if text_width <= max_width:
+        if font_str_width(font, test_line) <= max_width:
             current_line.append(word)
         else:
             lines.append(' '.join(current_line))
@@ -72,9 +81,9 @@ def print_task(task, task_type: TaskType):
     #             padding_x=50, align="right")
     # draw_string(im, FONT_LARGE, emoji, (0, 30), MAX_WIDTH,
     #             padding_x=50, align="right")
-    draw_string(im, FONT_LARGE, emoji * 1, (0, 30), MAX_WIDTH,
+    draw_string(im, FONT_LARGE, emoji, (0, 0), MAX_WIDTH,
                 padding_x=30, align="left")
-    draw_string(im, FONT, task, (0, 104), MAX_WIDTH,
+    draw_string(im, FONT, task, (0, font_height(FONT_LARGE)), MAX_WIDTH,
                 padding_x=30, align="center")
     return im
     # im.show()
@@ -87,8 +96,9 @@ def print_text(text):
 
 
 if __name__ == "__main__":
-    # removed im.show(), add back for debug
-    print_task("Thomas var her", TaskType.ARCHIVE)
+    im = print_task("Thomas var her", TaskType.ARCHIVE)
+    im.show()
+
 # im = Image.new("L", (512, 512), "#ffffff")
 # s = "The quick brown fox jumps over the lazy dog"
 # draw_string(im, s * 100, (0, 15), MAX_WIDTH, 15)
