@@ -7,3 +7,5 @@ Pillow
 fastapi
 uvicorn[standard]
 python-multipart
+pilmoji
+emoji==1.7
