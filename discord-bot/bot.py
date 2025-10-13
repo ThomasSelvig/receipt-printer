@@ -11,7 +11,7 @@ import uvicorn
 from discord.ext import commands
 from dotenv import load_dotenv
 from escpos.printer import Usb
-from fastapi import FastAPI, File, Form, UploadFile, Query
+from fastapi import FastAPI, File, Form, Query, UploadFile
 from PIL import Image
 
 load_dotenv()
