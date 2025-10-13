@@ -91,13 +91,13 @@ async def print_text_api(text: str = Form(...), markdown: bool = Form(True)):
 
 
 @app.post("/print/task")
-async def print_task_api(text: str = Form(...), task_type: utils.TaskType = Query(...)):
-    try:
-        p.image(utils.print_task(text, task_type))
-        p.cut()
-        return {"status": "success", "message": "Image printed successfully"}
-    except Exception as e:
-        return {"status": "error", "message": f"Error printing task: {e}"}
+async def print_task_api(text: str = Form(...), task_type: utils.TaskType = Form(...)):
+    # try:
+    p.image(utils.print_task(text, task_type))
+    p.cut()
+    return {"status": "success", "message": "Image printed successfully"}
+    # except Exception as e:
+    #     return {"status": "error", "message": f"Error printing task: {e}"}
 
 
 @app.post("/print/image")
