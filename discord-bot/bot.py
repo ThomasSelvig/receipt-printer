@@ -26,7 +26,6 @@ sleep(1)
 p.charcode("CP850")
 
 # Initialize image backend for advanced text rendering
-image_backend = ImageBackend(max_width=512)
 
 
 @bot.slash_command(name="print-tekst", guild_ids=guilds)
@@ -150,22 +149,6 @@ async def print_from_url_api(url: str = Form(...)):
         return {"status": "success", "message": "Image from URL printed successfully"}
     except Exception as e:
         return {"status": "error", "message": f"Failed to print image from URL: {str(e)}"}
-
-
-@app.post("/print/qr")
-async def print_qr_api(data: str = Form(...)):
-    try:
-        # Fix encoding issue for Norwegian characters
-        decoded_data = data.encode('latin1').decode('utf-8')
-        print("printing QR for:", decoded_data)
-        
-        # Generate QR code image
-        qr_image = image_backend.generate_qr_code(decoded_data)
-        p.image(qr_image)
-        p.cut()
-        return {"status": "success", "message": "QR code printed successfully"}
-    except (IOError, UnicodeDecodeError) as e:
-        return {"status": "error", "message": f"QR printing failed: {str(e)}"}
 
 
 def run_fastapi():
