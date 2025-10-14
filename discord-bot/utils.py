@@ -94,15 +94,18 @@ def print_task(task, task_type: TaskType):
 def print_text(text):
     # im = Image.new("L", (512, 256), "#ffffff")
     # draw_string(im, FONT, text, (0, 104), MAX_WIDTH)
-    text_height = ceil(font_height(
-        FONT, string=wrap_long_string(text, MAX_WIDTH, FONT)))
-    im = Image.new("L", (MAX_WIDTH, text_height), "#ffffff")
-    draw_string(im, FONT, text, (0, 0), MAX_WIDTH)
+    # text_height = ceil(font_height(
+    #     FONT, string=wrap_long_string(text, MAX_WIDTH, FONT)))
+    lines_needed = wrap_long_string(text, MAX_WIDTH, FONT).count("\n") + 1
+    im = Image.new("L", (MAX_WIDTH, ceil(
+        font_height(FONT)) * lines_needed), "#ffffff")
+    draw_string(im, FONT, text, (0, -16))
     return im
 
 
 if __name__ == "__main__":
-    im = print_task("Thomas var her", TaskType.ARCHIVE)
+    # im = print_task("Thomas var her", TaskType.ARCHIVE)
+    im = print_text("JlThomas var her")
     im.show()
 
 # im = Image.new("L", (512, 512), "#ffffff")
