@@ -43,9 +43,9 @@ def wrap_long_string(long_text, max_width, font):
 
 
 def draw_string(image, font, string, pos, padding_x=0, align: Literal["left", "center", "right"] = "left"):
-    wrapped = wrap_long_string(string, im.width - padding_x * 2, font)
+    wrapped = wrap_long_string(string, image.width - padding_x * 2, font)
 
-    spare_space = im.width - font_str_width(font, wrapped) - padding_x * 2
+    spare_space = image.width - font_str_width(font, wrapped) - padding_x * 2
 
     x = pos[0] + padding_x
     if align == "center" and spare_space > 0:
