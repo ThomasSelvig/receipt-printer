@@ -1,4 +1,5 @@
 from enum import Enum
+from math import ceil
 from typing import Literal
 from PIL import Image, ImageFont, ImageDraw
 from pilmoji.core import Pilmoji
@@ -41,11 +42,10 @@ def wrap_long_string(long_text, max_width, font):
     return "\n".join(lines)
 
 
-def draw_string(image, font, string, pos, max_width, padding_x=0, align: Literal["left", "center", "right"] = "left"):
-    wrapped = wrap_long_string(string, max_width - padding_x * 2, font)
+def draw_string(image, font, string, pos, padding_x=0, align: Literal["left", "center", "right"] = "left"):
+    wrapped = wrap_long_string(string, im.width - padding_x * 2, font)
 
-    text_width = font.getbbox(wrapped)[2] - font.getbbox(wrapped)[0]
-    spare_space = max_width - text_width - padding_x * 2
+    spare_space = im.width - font_str_width(font, wrapped) - padding_x * 2
 
     x = pos[0] + padding_x
     if align == "center" and spare_space > 0:
@@ -81,17 +81,19 @@ def print_task(task, task_type: TaskType):
     #             padding_x=50, align="right")
     # draw_string(im, FONT_LARGE, emoji, (0, 30), MAX_WIDTH,
     #             padding_x=50, align="right")
-    draw_string(im, FONT_LARGE, emoji, (0, 0), MAX_WIDTH,
+    draw_string(im, FONT_LARGE, emoji, (0, 0),
                 padding_x=30, align="left")
-    draw_string(im, FONT, task, (0, font_height(FONT_LARGE)), MAX_WIDTH,
+    draw_string(im, FONT, task, (0, font_height(FONT_LARGE)),
                 padding_x=30, align="center")
     return im
     # im.show()
 
 
 def print_text(text):
-    im = Image.new("L", (512, 256), "#ffffff")
-    draw_string(im, FONT, text, (0, 104), MAX_WIDTH)
+    # im = Image.new("L", (512, 256), "#ffffff")
+    # draw_string(im, FONT, text, (0, 104), MAX_WIDTH)
+    im = Image.new("L", (512, ceil(font_height(FONT))), "#ffffff")
+    draw_string(im, FONT, text, (0, 0), MAX_WIDTH)
     return im
 
 
