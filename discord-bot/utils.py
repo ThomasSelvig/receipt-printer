@@ -15,7 +15,9 @@ FONT = ImageFont.truetype(font_path, 48)
 FONT_LARGE = ImageFont.truetype(font_path, 80)
 
 
-def font_height(font):
+def font_height(font, string=None):
+    if string is not None:
+        l, t, r, b = font.getbbox(string)
     l, t, r, b = font.getbbox(ascii_letters)
     return b - t
 
@@ -92,7 +94,9 @@ def print_task(task, task_type: TaskType):
 def print_text(text):
     # im = Image.new("L", (512, 256), "#ffffff")
     # draw_string(im, FONT, text, (0, 104), MAX_WIDTH)
-    im = Image.new("L", (512, ceil(font_height(FONT))), "#ffffff")
+    text_height = ceil(font_height(
+        FONT, string=wrap_long_string(text, MAX_WIDTH, FONT)))
+    im = Image.new("L", (MAX_WIDTH, text_height), "#ffffff")
     draw_string(im, FONT, text, (0, 0), MAX_WIDTH)
     return im
 
