@@ -99,7 +99,7 @@ def print_text(text):
     lines_needed = wrap_long_string(text, MAX_WIDTH, FONT).count("\n") + 1
     im = Image.new("L", (MAX_WIDTH, ceil(
         font_height(FONT)) * lines_needed), "#ffffff")
-    draw_string(im, FONT, text, (0, -16))
+    draw_string(im, FONT, text, (0, -16), align="center")
     return im
 
 
