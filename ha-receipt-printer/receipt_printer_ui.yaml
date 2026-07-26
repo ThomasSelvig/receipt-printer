@@ -1,0 +1,182 @@
+# Package: Receipt Printer UI
+#
+# Drop this in `packages/receipt_printer.yaml` and add `packages: !include_dir_named packages`
+# under `homeassistant:` or include it directly under configuration.yaml:
+#   receipt_printer_ui: !include receipt_printer_ui.yaml
+#
+# What you get:
+#   - input_text.printer_message   (free text field on the dashboard)
+#   - input_select.printer_task    (Fortune / Weather / None)
+#   - input_boolean.printer_fast   (toggle raw mode)
+#   - 3 scripts (exposed as dashboard call-service buttons)
+#     - script.printer_print_text
+#     - script.printer_print_task
+#     - script.printer_print_url    (asks for a URL via a prompt)
+# ================================================================
+
+# --- helpers (these show up as entities in the UI) ---
+input_text:
+  printer_message:
+    name: Message
+    initial: ""
+    icon: mdi:format-text
+
+input_select:
+  printer_task:
+    name: Task
+    options:
+      - fortune
+      - weather
+    initial: fortune
+    icon: mdi:format-list-bulleted
+
+input_boolean:
+  printer_fast:
+    name: Fast (raw)
+    icon: mdi:speed
+
+# --- scripts that wrap notify.receipt_printer ---
+script:
+  printer_print_text:
+    alias: "Printer: Print text"
+    icon: mdi:printer
+    description: "Print the text from input_text.printer_message to the receipt printer."
+    sequence:
+      - service: notify.receipt_printer
+        data:
+          message: "{{ states('input_text.printer_message') }}"
+          data:
+            fast: "{{ is_state('input_boolean.printer_fast', 'on') }}"
+    fields:
+      text:
+        description: "Override message; defaults to the input_text."
+        example: "Hello"
+        selector:
+          text:
+            multiline: true
+
+  printer_print_task:
+    alias: "Printer: Print task"
+    icon: mdi:printer
+    description: "Run a canned task (fortune / weather, etc.)."
+    sequence:
+      - service: notify.receipt_printer
+        data:
+          message: "{{ states('input_text.printer_message') }}"
+          data:
+            task_type: "{{ states('input_select.printer_task') }}"
+    fields:
+      task:
+        description: "Override task type; defaults to the dropdown."
+        example: fortune
+        selector:
+          select:
+            options:
+              - fortune
+              - weather
+
+  printer_print_url:
+    alias: "Printer: Print image from URL (prompted)"
+    icon: mdi:image
+    description: "Print an image from a URL typed into the field."
+    mode: single
+    fields:
+      url:
+        description: "Direct https link to the image."
+        example: "https://example.com/cat.png"
+        required: true
+        selector:
+          text:
+            multiline: false
+    sequence:
+      - service: notify.receipt_printer
+        data:
+          message: ""
+          data:
+            image_url: "{{ url }}"
+
+  printer_print_url_from_helper:
+    alias: "Printer: Print URL from input field"
+    icon: mdi:image
+    description: "Reads the URL from input_text.printer_message and prints the image at that URL."
+    mode: single
+    sequence:
+      - service: notify.receipt_printer
+        data:
+          message: ""
+          data:
+            image_url: "{{ states('input_text.printer_message') }}"
+
+printer_print_image:
+    alias: "Printer: Print image file (server path)"
+    icon: mdi:image-area
+    description: "Print a server-side image file via /print/image (e.g. one saved by camera.snapshot)."
+    mode: single
+    fields:
+      file_path:
+        description: "Absolute path on the HA server."
+        example: "/config/www/snapshot.png"
+        required: true
+        selector:
+          text:
+            multiline: false
+    sequence:
+      - service: receipt_printer.print_image
+        data:
+          file_path: "{{ file_path }}"
+
+# --- one dashboard button row blueprint (use this in your view) ---
+# Lovelace YAML for the card is encoded here for copy/paste:
+# updated via the HA "Raw config editor" or stored under ui-lovelace.yaml
+# ===========================================================================
+# type: vertical-stack
+# title: Receipt Printer
+# cards:
+#   - type: entities
+#     entities:
+#       - entity: input_text.printer_message
+#       - entity: input_boolean.printer_fast
+#   - type: button
+#     name: Print message
+#     icon: mdi:printer
+#     tap_action:
+#       action: call-service
+#       service: script.printer_print_text
+#   - type: entities
+#     title: Canned tasks
+#     entities:
+#       - entity: input_select.printer_task
+#   - type: button
+#     name: Run task
+#     icon: mdi:printer
+#     tap_action:
+#       action: call-service
+#       service: script.printer_print_task
+#   - type: button
+#     name: Print URL
+#     icon: mdi:image
+#     tap_action:
+#       action: call-service
+#       service: script.printer_print_url
+#       data:
+#         url: https://example.com/foo.png
+#   - type: button
+#     name: Fortune (1-click)
+#     icon: mdi:format-quote-close
+#     tap_action:
+#       action: call-service
+#       service: notify.receipt_printer
+#       data:
+#         message: ""
+#         data:
+#           task_type: fortune
+#   - type: button
+#     name: Weather (1-click)
+#     icon: mdi:weather-cloudy
+#     tap_action:
+#       action: call-service
+#       service: notify.receipt_printer
+#       data:
+#         message: "Oslo"
+#         data:
+#           task_type: weather

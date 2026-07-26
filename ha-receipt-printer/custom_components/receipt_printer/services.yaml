@@ -1,0 +1,68 @@
+print_text:
+  name: Print text
+  description: Print a block of text to the thermal printer.
+  fields:
+    message:
+      name: Text
+      description: Message body to print.
+      required: true
+      example: "Hello from Home Assistant"
+      selector:
+        text:
+          multiline: true
+    fast:
+      name: Fast mode
+      description: Skip the rendered-image path and use raw ESC/POS text mode.
+      required: false
+      default: false
+      selector:
+        boolean:
+
+print_url:
+  name: Print image from URL
+  description: Download an image from a URL and print it.
+  fields:
+    image_url:
+      name: Image URL
+      description: Direct https link to the image to print.
+      required: true
+      example: "https://example.com/photo.png"
+      selector:
+        text:
+
+print_task:
+  name: Print canned task
+  description: Run one of the predefined tasks exposed by utils.print_task (e.g. fortune, weather).
+  fields:
+    message:
+      name: Subject
+      description: Text argument passed to the task.
+      required: true
+      example: "Oslo"
+      selector:
+        text:
+    task_type:
+      name: Task type
+      required: true
+      default: fortune
+      selector:
+        select:
+          options:
+            - fortune
+            - weather
+
+print_image:
+  name: Print image file
+  description: |
+    Print an image file located on the Home Assistant server's filesystem
+    (e.g. a file under /config/www, or a file produced by camera.snapshot).
+    Posts it to /print/image on the configured api.py service.
+  fields:
+    file_path:
+      name: File path
+      description: Absolute path on the HA server to an image file (PNG, JPG, GIF).
+      required: true
+      example: "/config/www/snapshot.png"
+      selector:
+        text:
+          multiline: false

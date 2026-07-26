@@ -1,0 +1,98 @@
+type: vertical-stack
+title: Receipt Printer
+cards:
+  - type: entities
+    title: Message
+    entities:
+      - entity: input_text.printer_message
+        name: Text
+      - entity: input_boolean.printer_fast
+        name: Fast (raw ESC/POS)
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Print text
+        icon: mdi:printer
+        tap_action:
+          action: call-service
+          service: script.printer_print_text
+          confirmation:
+            text: Print this message?
+          data: {}
+        hold_action:
+          action: more-info
+      - type: button
+        name: Clear
+        icon: mdi:eraser
+        tap_action:
+          action: call-service
+          service: input_text.set_value
+          target:
+            entity_id: input_text.printer_message
+          data:
+            value: ""
+  - type: entities
+    title: Canned task
+    entities:
+      - entity: input_select.printer_task
+        name: Task
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Run task
+        icon: mdi:printer
+        tap_action:
+          action: call-service
+          service: script.printer_print_task
+          confirmation:
+            text: Run task?
+          data: {}
+      - type: button
+        name: Fortune
+        icon: mdi:format-quote-close
+        tap_action:
+          action: call-service
+          service: notify.receipt_printer
+          data:
+            message: ""
+            data:
+              task_type: fortune
+      - type: button
+        name: Weather
+        icon: mdi:weather-cloudy
+        tap_action:
+          action: call-service
+          service: notify.receipt_printer
+          data:
+            message: Oslo
+            data:
+              task_type: weather
+  - type: entities
+    title: Print image from URL
+    entities:
+      - entity: input_text.printer_message
+        name: Image URL
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Print URL (as image)
+        icon: mdi:image
+        tap_action:
+          action: call-service
+          service: script.printer_print_url_from_helper
+          confirmation:
+            text: Print the image at the URL in the text field?
+          data: {}
+  - type: custom:receipt-printer-card
+    name: Upload image
+    printer_url: "http://192.168.1.100:8000"
+      - type: button
+        name: Clear
+        icon: mdi:eraser
+        tap_action:
+          action: call-service
+          service: input_text.set_value
+          target:
+            entity_id: input_text.printer_message
+          data:
+            value: ""

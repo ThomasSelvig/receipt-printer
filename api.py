@@ -5,10 +5,20 @@ import requests
 import utils
 import uvicorn
 from escpos.printer import Usb
-from fastapi import FastAPI, File, Form, Query, UploadFile
+from fastapi import FastAPI, File, Form, Query, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 
 app = FastAPI()
+
+# Allow Lovelace cards (browser) running on the HA instance to POST directly.
+# Tighten allow_origins to your HA URL in production if you prefer.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST", "GET"],
+    allow_headers=["*"],
+)
 
 # vendor id, product id, lsusb -vvv -d 1504:0101 | grep bEndpointAddress
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
@@ -17,18 +27,25 @@ p.charcode("CP850")
 
 
 @app.post("/print/text")
-async def print_text_api(text: str = Form(...), fast: bool = Query(False)):
+async def print_text_api(request: Request, text: str = Form(...), fast: bool = Query(False)):
+    # Also accept fast from multipart form-data, so curl/fetch can send it
+    # either as ?fast=true (query) or as a form field.
+    if not fast:
+        form = await request.form()
+        if "fast" in form:
+            fast = form["fast"].lower() in ("1", "true", "yes", "on")
     try:
-        # Fix encoding issue for Norwegian characters
-        decoded_text = text.encode('latin1').decode('utf-8')
-        print("printer tekst:", decoded_text)
+        print("printer tekst:", text)
         if fast:
-            p.text(decoded_text)
+            # Fast path: send raw ESC/POS text. The printer's charcode is set
+            # to CP850 above; python-escpos will encode the string accordingly.
+            # Norwegian characters (æøå ÆØÅ) exist in CP850.
+            p.text(text)
         else:
-            p.image(utils.print_text(decoded_text))
+            p.image(utils.print_text(text))
         p.cut()
         return {"status": "success", "message": "Text printed successfully"}
-    except (IOError, UnicodeDecodeError) as e:
+    except (IOError, UnicodeError) as e:
         return {"status": "error", "message": f"Printing failed: {str(e)}"}
 
 
