@@ -8,6 +8,7 @@ norwegian_supported_codes = ["CP1252", "CP850", "CP865"]
 p = Usb(0x1504, 0x0101, out_ep=0x02, in_ep=0x81)
 p.charcode("CP1252")
 
+
 def get_joke():
     jokes = [
         "Why did the thermal receipt printer break up with its partner?\nIt just couldn’t handle the heat of the moment!",
@@ -25,6 +26,6 @@ def get_joke():
     return choice(jokes)
 
 
-p.text(f"{get_joke()}")
-# p.text("Her er en Ææ, en Øø, og en Åå. ^*̈́''¨`+\\`=)(/&%¤#\"!.,-)")
+# p.text(f"{get_joke()}")
+p.text("Her er en Ææ, en Øø, og en Åå. ^*̈́''¨`+\\`=)(/&%¤#\"!.,-)")
 p.cut()

@@ -1,0 +1,10 @@
+services:
+  api:
+    build: .
+    container_name: receipt-printer-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    privileged: true
